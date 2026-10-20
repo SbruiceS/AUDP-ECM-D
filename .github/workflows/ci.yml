@@ -5,14 +5,21 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+  workflow_call:          # reused by release.yml
 
 permissions:
   contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     name: dub test (${{ matrix.os }}, ${{ matrix.dc }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -21,13 +28,13 @@ jobs:
         exclude:
           - { os: macos-latest, dc: dmd-latest }   # DMD has no Apple Silicon backend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       # The core is private: fetch it with a read-only deploy key scoped to that repo.
       - name: Checkout AUDP-ECM core
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: SbruiceS/AUDP-ECM
           ref: dac54f1d0f9fff59991c42a5554fb73bcdb0a879   # ABI v2; bump deliberately
@@ -46,7 +53,7 @@ jobs:
         with:
           compiler: ${{ matrix.dc }}
 
-      - name: Test
+      - name: Test and run example
         shell: bash
         run: |
           export AUDP_ECM_LIB_DIR="$GITHUB_WORKSPACE/core/target/release"

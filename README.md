@@ -1,11 +1,28 @@
 # audp-ecm (D)
 
+[![CI](https://github.com/SbruiceS/AUDP-ECM-D/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/SbruiceS/AUDP-ECM-D/actions/workflows/ci.yml)
+[![Release](https://github.com/SbruiceS/AUDP-ECM-D/actions/workflows/release.yml/badge.svg)](https://github.com/SbruiceS/AUDP-ECM-D/actions/workflows/release.yml)
+[![D](https://img.shields.io/badge/D-DMD%20%7C%20LDC-B03931)](docs/building.md)
+[![Platforms](https://img.shields.io/badge/platforms-linux%20%7C%20windows%20%7C%20macOS-informational)](docs/building.md)
+[![API](https://img.shields.io/badge/API-%40safe-success)](docs/security.md)
+[![License](https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue)](#licence)
+[![Website](https://img.shields.io/badge/website-AUDP--ECM-0b7285)](https://sbruices.github.io/AUDP-ECM-Website/)
+
 D bindings for **AUDP-ECM**, the AUDP Error Correction Mathematics Engine.
 They provide Reed–Solomon over GF(256), CRC-16/CCITT-FALSE, and a burst-resilient
 pipeline that interleaves across codewords. The bindings sit on top of the hardened `ecm-ffi` C ABI (v2).
 
 > **Not cryptography.** CRC and Reed–Solomon correct channel noise; they do
 > not authenticate data.
+
+## Documentation
+
+| | |
+|---|---|
+| [docs/api.md](docs/api.md) | API reference |
+| [docs/building.md](docs/building.md) | Toolchains, linking per platform, CI |
+| [docs/security.md](docs/security.md) | Safety design and guarantees |
+| [docs/releasing.md](docs/releasing.md) | CD pipeline, dub registry, release verification |
 
 ## Requirements
 

@@ -1,0 +1,91 @@
+name: Release
+
+# CD pipeline.
+#   tag vX.Y.Z        -> validate tag, full CI matrix, package source + header,
+#                        GitHub Release (checksums + provenance) via the
+#                        protected `AUDP-ECM` environment. The dub registry
+#                        (code.dlang.org) picks the tag up automatically once
+#                        the package is registered.
+#   workflow_dispatch -> dry run: validate, test and package; publish nothing.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Tag must be semantic version (required by dub)
+        run: |
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            echo "$GITHUB_REF_NAME" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$' \
+              || { echo "::error::tag $GITHUB_REF_NAME is not vMAJOR.MINOR.PATCH"; exit 1; }
+          fi
+          echo "ref $GITHUB_REF_NAME ok"
+
+  test:
+    name: Full test matrix
+    needs: validate
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  package:
+    name: Package source + header
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Source archive, header, checksums
+        run: |
+          name="audp-ecm-d-${GITHUB_REF_NAME}"
+          mkdir -p dist
+          git archive --format=tar.gz --prefix="$name/" -o "dist/$name.tar.gz" HEAD
+          cp ecm_ffi.h dist/
+          cd dist && sha256sum * | tee SHA256SUMS
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist
+          if-no-files-found: error
+
+  github-release:
+    name: GitHub Release
+    needs: package
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: AUDP-ECM
+      url: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
+      - uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: dist/*.tar.gz
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" --title "audp-ecm (D) $GITHUB_REF_NAME" --generate-notes \
+            --notes "Verify: \`sha256sum -c SHA256SUMS\` and \`gh attestation verify <archive> --repo $GITHUB_REPOSITORY\`."
