@@ -25,12 +25,14 @@ jobs:
         with:
           persist-credentials: false
 
-      # The core is private: fetch it with a read-only, repo-scoped token.
+      # The core is private: fetch it with a read-only deploy key scoped to that repo.
       - name: Checkout AUDP-ECM core
         uses: actions/checkout@v4
         with:
           repository: SbruiceS/AUDP-ECM
-          token: ${{ secrets.CORE_REPO_TOKEN }}
+          ref: 42b04c5a8050d4a2be0fb635a47ca61ffbaf80cc   # ABI v2; bump deliberately
+          ssh-key: ${{ secrets.CORE_DEPLOY_KEY }}
+          ssh-strict: true
           path: core
           persist-credentials: false
 

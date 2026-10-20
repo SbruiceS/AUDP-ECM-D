@@ -14,6 +14,7 @@
 	"lflags-posix": ["-L$AUDP_ECM_LIB_DIR"],
 	"libs-linux": [":libecm_ffi.a", "pthread", "dl", "m"],
 	"libs-osx": ["ecm_ffi"],
+	"lflags-osx": ["-rpath", "$AUDP_ECM_LIB_DIR"],
 	"lflags-windows": ["/LIBPATH:$AUDP_ECM_LIB_DIR"],
 	"libs-windows": ["ecm_ffi.dll"],
 
