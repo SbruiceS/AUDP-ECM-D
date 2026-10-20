@@ -1,0 +1,106 @@
+name: Benchmarks
+
+# Reproducible performance numbers for a released version of the D binding:
+# checks out that tag, builds libecm_ffi from the core commit the release pins,
+# runs `dub run :bench -b release` on GitHub-hosted runners, uploads JSON.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release tag of the D binding (e.g. v0.2.0)"
+        required: true
+        default: "v0.2.0"
+
+permissions:
+  contents: read
+
+jobs:
+  bench:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, dc: ldc-latest, label: linux-x86_64-ldc }
+          - { os: windows-latest, dc: ldc-latest, label: windows-x64-ldc }
+          - { os: macos-latest, dc: ldc-latest, label: macos-arm64-ldc }
+    steps:
+      - name: Checkout release ${{ inputs.version }}
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.version }}
+          persist-credentials: false
+
+      - name: Benchmark sources from main (so older tags can be measured)
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          path: _main
+          sparse-checkout: benchmarks
+          persist-credentials: false
+
+      - name: Core commit pinned by this release
+        id: pin
+        shell: bash
+        run: |
+          rev=$(grep -Eo 'ref: [0-9a-f]{40}' .github/workflows/ci.yml | head -1 | cut -d' ' -f2)
+          test -n "$rev" || { echo "::error::no pinned core commit in ci.yml"; exit 1; }
+          echo "rev=$rev" >> "$GITHUB_OUTPUT"; echo "core $rev"
+
+      - name: Checkout AUDP-ECM core (read-only deploy key)
+        uses: actions/checkout@v7
+        with:
+          repository: SbruiceS/AUDP-ECM
+          ref: ${{ steps.pin.outputs.rev }}
+          ssh-key: ${{ secrets.CORE_DEPLOY_KEY }}
+          ssh-strict: true
+          path: core
+          persist-credentials: false
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build libecm_ffi
+        working-directory: core
+        run: cargo build -p ecm-ffi --release --locked
+
+      - uses: dlang-community/setup-dlang@v2
+        with:
+          compiler: ${{ matrix.dc }}
+
+      - name: Run benchmarks
+        shell: bash
+        run: |
+          rm -rf benchmarks && cp -r _main/benchmarks benchmarks
+          grep -q '"name": "bench"' dub.json || python3 - <<'EOF'
+          import json
+          d = json.load(open("dub.json"))
+          d.setdefault("subPackages", []).append({"name": "bench", "targetType": "executable",
+              "sourcePaths": ["benchmarks"], "importPaths": ["source"],
+              "dependencies": {"audp-ecm": {"path": "."}}})
+          json.dump(d, open("dub.json", "w"), indent="\t")
+          EOF
+          export AUDP_ECM_LIB_DIR="$GITHUB_WORKSPACE/core/target/release"
+          export PATH="$AUDP_ECM_LIB_DIR:$PATH"
+          export DYLD_LIBRARY_PATH="$AUDP_ECM_LIB_DIR"
+          dub run :bench -b release --compiler=${DC} -q > "bench-${{ matrix.label }}.json"
+
+      - name: Job summary
+        shell: bash
+        run: |
+          python3 - "bench-${{ matrix.label }}.json" >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          print(f"### audp-ecm (D) · core {d['library_version']} · {d['compiler']} · {d['os']} · {d['cpu']}")
+          print(f"noisy: {d['noisy']}\n")
+          print("| code | operation | median µs | min µs | MB/s | GC B/call |\n|---|---|---:|---:|---:|---:|")
+          for r in d["results"]:
+              print(f"| {r['code']} | {r['op']} | {r['median_ns']/1e3:.2f} | {r['min_ns']/1e3:.2f} | {r['throughput_mb_s']:.1f} | {r['gc_bytes_per_call']} |")
+          EOF
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bench-${{ matrix.label }}
+          path: bench-${{ matrix.label }}.json
+          if-no-files-found: error

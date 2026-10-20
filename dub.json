@@ -27,6 +27,13 @@
 	],
 	"subPackages": [
 		{
+			"name": "bench",
+			"targetType": "executable",
+			"sourcePaths": ["benchmarks"],
+			"importPaths": ["source"],
+			"dependencies": { "audp-ecm": { "path": "." } }
+		},
+		{
 			"name": "example",
 			"targetType": "executable",
 			"sourcePaths": ["examples"],
