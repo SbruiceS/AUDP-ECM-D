@@ -1,0 +1,36 @@
+{
+	"name": "audp-ecm",
+	"description": "D bindings for AUDP-ECM: Reed–Solomon, CRC-16 and burst-resilient framing over the hardened ecm-ffi C ABI",
+	"authors": ["Sbruice Singh"],
+	"copyright": "© 2026 Sbruice Singh / Agriculture Service of Product Farm (ASPF)",
+	"license": "Apache-2.0 OR MIT",
+	"homepage": "https://github.com/SbruiceS/AUDP-ECM-D",
+	"targetType": "library",
+	"sourcePaths": ["source"],
+	"importPaths": ["source"],
+	"dflags": ["-preview=dip1000", "-preview=in"],
+	"buildRequirements": ["requireBoundsCheck"],
+
+	"lflags-posix": ["-L$AUDP_ECM_LIB_DIR"],
+	"libs-linux": [":libecm_ffi.a", "pthread", "dl", "m"],
+	"libs-osx": ["ecm_ffi"],
+	"lflags-windows": ["/LIBPATH:$AUDP_ECM_LIB_DIR"],
+	"libs-windows": ["ecm_ffi.dll"],
+
+	"configurations": [
+		{ "name": "library" },
+		{
+			"name": "unittest",
+			"targetType": "library"
+		}
+	],
+	"subPackages": [
+		{
+			"name": "example",
+			"targetType": "executable",
+			"sourcePaths": ["examples"],
+			"importPaths": ["source"],
+			"dependencies": { "audp-ecm": { "path": "." } }
+		}
+	]
+}

@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: dub test (${{ matrix.os }}, ${{ matrix.dc }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        dc: [dmd-latest, ldc-latest]
+        exclude:
+          - { os: macos-latest, dc: dmd-latest }   # DMD has no Apple Silicon backend
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # The core is private: fetch it with a read-only, repo-scoped token.
+      - name: Checkout AUDP-ECM core
+        uses: actions/checkout@v4
+        with:
+          repository: SbruiceS/AUDP-ECM
+          token: ${{ secrets.CORE_REPO_TOKEN }}
+          path: core
+          persist-credentials: false
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build libecm_ffi
+        working-directory: core
+        run: cargo build -p ecm-ffi --release --locked
+
+      - uses: dlang-community/setup-dlang@v2
+        with:
+          compiler: ${{ matrix.dc }}
+
+      - name: Test
+        shell: bash
+        run: |
+          export AUDP_ECM_LIB_DIR="$GITHUB_WORKSPACE/core/target/release"
+          export PATH="$AUDP_ECM_LIB_DIR:$PATH"            # Windows: find ecm_ffi.dll
+          export DYLD_LIBRARY_PATH="$AUDP_ECM_LIB_DIR"     # macOS
+          dub test --compiler=${DC}
+          dub run :example --compiler=${DC}

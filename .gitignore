@@ -1,0 +1,15 @@
+.dub/
+docs.json
+__dummy.html
+*.exe
+*.o
+*.obj
+*.lib
+*.a
+*.so
+*.dll
+*.dylib
+*.pdb
+/audp-ecm*
+/audp-ecm-test-*
+/example
