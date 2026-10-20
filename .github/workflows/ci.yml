@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: SbruiceS/AUDP-ECM
-          ref: 42b04c5a8050d4a2be0fb635a47ca61ffbaf80cc   # ABI v2; bump deliberately
+          ref: dac54f1d0f9fff59991c42a5554fb73bcdb0a879   # ABI v2; bump deliberately
           ssh-key: ${{ secrets.CORE_DEPLOY_KEY }}
           ssh-strict: true
           path: core
