@@ -3,7 +3,7 @@
 	"description": "D bindings for AUDP-ECM: Reed–Solomon, CRC-16 and burst-resilient framing over the hardened ecm-ffi C ABI",
 	"authors": ["Sbruice Singh"],
 	"copyright": "© 2026 Sbruice Singh / Agriculture Service of Product Farm (ASPF)",
-	"license": "Apache-2.0 OR MIT",
+	"license": "proprietary",
 	"homepage": "https://github.com/SbruiceS/AUDP-ECM-D",
 	"targetType": "library",
 	"sourcePaths": ["source"],

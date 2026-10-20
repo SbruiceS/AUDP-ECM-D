@@ -12,7 +12,8 @@
  *  - No Rust panic crosses this boundary (reported as ECM_ERR_INTERNAL).
  *  - On decode/recover failure the output buffer is zeroed and out-params reset.
  *
- * Copyright (c) 2026 Sbruice Singh / ASPF. Apache-2.0 OR MIT.
+ * Copyright (c) 2026 Sbruice Singh / ASPF. All rights reserved.
+ * Proprietary — ASPF Proprietary Software License (see LICENSE).
  */
 #ifndef AUDP_ECM_FFI_H
 #define AUDP_ECM_FFI_H

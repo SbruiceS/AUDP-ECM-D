@@ -5,7 +5,7 @@
 [![D](https://img.shields.io/badge/D-DMD%20%7C%20LDC-B03931)](docs/building.md)
 [![Platforms](https://img.shields.io/badge/platforms-linux%20%7C%20windows%20%7C%20macOS-informational)](docs/building.md)
 [![API](https://img.shields.io/badge/API-%40safe-success)](docs/security.md)
-[![License](https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue)](#licence)
+[![License](https://img.shields.io/badge/license-proprietary%20(ASPF)-lightgrey)](LICENSE)
 [![Website](https://img.shields.io/badge/website-AUDP--ECM-0b7285)](https://sbruices.github.io/AUDP-ECM-Website/)
 
 D bindings for **AUDP-ECM**, the AUDP Error Correction Mathematics Engine.
@@ -85,4 +85,6 @@ See [SECURITY.md](SECURITY.md) to report a vulnerability.
 
 ## Licence
 
-Apache-2.0 OR MIT. © 2026 Sbruice Singh / Agriculture Service of Product Farm (ASPF).
+**Proprietary software — not open source.** © 2026 Sbruice Singh / Agriculture Service
+of Product Farm (ASPF). All rights reserved. Use requires a written licence agreement
+with ASPF; see [LICENSE](LICENSE). Licensing enquiries: sbruicesingh@haclon.in.

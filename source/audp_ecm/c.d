@@ -4,7 +4,7 @@
  * Low-level and `@system`: prefer the safe API in `audp_ecm`.
  *
  * Copyright: © 2026 Sbruice Singh / ASPF
- * License: Apache-2.0 OR MIT
+ * License: Proprietary — ASPF Proprietary Software License (see LICENSE). All rights reserved.
  */
 module audp_ecm.c;
 
